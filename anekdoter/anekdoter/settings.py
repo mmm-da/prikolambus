@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -7,14 +8,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'h8z_o^j)5xu5pv5$e*jqm_%%+k(uj(s90)#bids7@9#_(fnmai'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ["*"]
-
+SECRET_KEY = environ['SECRET_KEY']
+DEBUG = int(environ.get("DEBUG", default=0))
+ALLOWED_HOSTS = environ["DJANGO_ALLOWED_HOSTS"].split(" ")
+CORS_ORIGIN_ALLOW_ALL=True
 
 # Application definition
 
@@ -74,6 +71,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'anekdoter.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': 'database',
+        'PORT': environ['POSTGRES_PORT'],
+        'NAME': environ['POSTGRES_DB'],
+        'USER': environ['POSTGRES_USER'],
+        'PASSWORD': environ['POSTGRES_PASSWORD']
+    }
+}
 
 
 # Database

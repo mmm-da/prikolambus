@@ -19,7 +19,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./tts-proxy
-    command: uvicorn app:app --reload --host 0.0.0.0 --port 8001
+    command: uvicorn app:app --reload --host 0.0.0.0
     restart: always
     environment:
       - PYTHONUNBUFFERED=1
@@ -32,3 +32,34 @@ services:
       - TTS_API_SECRET_KEY="${TTS_API_SECRET_KEY}"
     ports: 
       - "8001:8001"
+
+  anekdot-api:
+    build:
+      dockerfile: Dockerfile
+      context: ./anekdoter
+    environment:
+      - DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - DJANGO_ALLOWED_HOSTS="${DJANGO_ALLOWED_HOSTS}"
+      - SECRET_KEY="${SECRET_KEY}"
+      - POSTGRES_USER="${POSTGRES_USER}"
+      - POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+      - POSTGRES_DB="${POSTGRES_DB}"
+      - POSTGRES_PORT="${POSTGRES_PORT}"
+    command: sh ./run.sh
+    restart: always
+    depends_on:
+      - tts-proxy-api
+      - generator-api
+      - database
+    ports: 
+      - "8002:8002"
+
+  database:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER="${POSTGRES_USER}"
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+      - POSTGRES_DB="${POSTGRES_DB}"
+    ports:
+      - "5432:5432"
