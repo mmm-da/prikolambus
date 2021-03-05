@@ -1,0 +1,34 @@
+version: "3.8"
+
+services: 
+
+  generator-api:
+    build:
+      dockerfile: Dockerfile
+      context: ./generator
+    command: uvicorn app:app --reload --host 0.0.0.0
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports: 
+      - "8000:8000"
+    volumes:
+      - /generator-temp/:/tmp
+
+  tts-proxy-api:
+    build:
+      dockerfile: Dockerfile
+      context: ./tts-proxy
+    command: uvicorn app:app --reload --host 0.0.0.0 --port 8001
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CLOUD_S3_ENDPOINT="${CLOUD_S3_ENDPOINT}"
+      - CLOUD_S3_ACCESS_KEY="${CLOUD_S3_ACCESS_KEY}"
+      - CLOUD_S3_SECRET_ACCESS_KEY="${CLOUD_S3_SECRET_ACCESS_KEY}"
+      - CLOUD_S3_REGION="${CLOUD_S3_REGION}"
+      - CLOUD_BUCKET_NAME="${CLOUD_BUCKET_NAME}"
+      - TTS_API_KEY_ID="${TTS_API_KEY_ID}"
+      - TTS_API_SECRET_KEY="${TTS_API_SECRET_KEY}"
+    ports: 
+      - "8001:8001"
