@@ -20,3 +20,6 @@ class Anekdot(models.Model):
     rep_penalty = models.FloatField(blank=True, default=1)
     rated_by = models.ManyToManyField(User, blank=True)
 
+class Invite(models.Model):
+    code = models.CharField(max_length=10)
+    is_given = models.BooleanField(default=False)

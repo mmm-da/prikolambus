@@ -1,5 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
 import requests
-import random
 from datetime import datetime
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -8,6 +8,8 @@ from drf_yasg.utils import swagger_auto_schema
 
 from models.models import *
 from .serializers import *
+
+from .invite import generate_invite
 
 
 class AnekdotViewSet(viewsets.ModelViewSet):
@@ -69,8 +71,8 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
             rep_penalty=r_p
         )
         new_anek.save()
-        serializer = AnekdotSerializer(new_anek)
-        return Response(serializer.data, status=201)
+        serialized = AnekdotSerializer(new_anek)
+        return Response(serialized.data, status=201)
 
 
 class AnekdotRatingViewSet(viewsets.ViewSet):
@@ -102,6 +104,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(request_body=UserSerializer)
     def create(self, request):
+        invite = request.query_params.get('invite')
+        if invite:
+            try:
+                Invite.objects.get(code=invite)
+            except ObjectDoesNotExist:
+                return Response(status=400)
         serialized = UserSerializer(data=request.data)
         if serialized.is_valid():
             User.objects.create_user(
@@ -111,3 +119,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serialized.data, status=201)
         else:
             return Response(serialized._errors, status=400)
+
+
+class InviteViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(request_body=UserSerializer)
+    def list(self, request):
+        invite = Invite.objects.create(code=generate_invite(), is_given=True)
+        invite.save()
+        serialized = InviteSerializer(invite)
+        return Response(serialized.data, status=201)

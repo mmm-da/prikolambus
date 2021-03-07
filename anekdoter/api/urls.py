@@ -8,7 +8,6 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .views import *
 
-
 router = DefaultRouter()
 
 router.register(r'anekdot', AnekdotViewSet, basename='anekdot')
@@ -16,6 +15,7 @@ router.register(r'next', NextAnekdotViewSet, basename='next')
 router.register(r'rate', AnekdotRatingViewSet, basename='rate')
 router.register(r'generate', AnekdotGeneratorViewSet, basename='generate')
 router.register(r'register', UserViewSet, basename='register')
+router.register(r'invite', InviteViewSet, basename='invite')
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -25,7 +25,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
-
 
 urlpatterns = [
     url(r'^swagger/$', schema_view.with_ui('swagger',

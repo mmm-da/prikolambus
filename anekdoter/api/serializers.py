@@ -37,3 +37,9 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'password'
         ]
+
+
+class InviteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invite
+        fields = ['code']
