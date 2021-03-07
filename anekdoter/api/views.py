@@ -1,7 +1,5 @@
 import requests
 from datetime import datetime
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import response
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework import viewsets
@@ -23,6 +21,15 @@ class AnekdotViewSet(viewsets.ModelViewSet):
         return Anekdot.objects.all().order_by('-rating')
 
 
+class RandomAnekdotViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get']
+
+    def get_queryset(self, request):
+        #unrated = Anekdot.objects.filter()
+
+    pass
+
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -34,7 +41,7 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
-        anek = requests.get('http://127.0.0.1:8000/anekdot', json={
+        anek = requests.get('http://127.0.0.1:8000/anekdot', params={
             'model': model,
             't': t,
             'p': p,
