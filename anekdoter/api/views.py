@@ -1,7 +1,8 @@
 import requests
+import random
 from datetime import datetime
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 
@@ -10,25 +11,30 @@ from .serializers import *
 
 
 class AnekdotViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     serializer_class = AnekdotSerializer
 
     def get_queryset(self):
         if self.action == 'list':
             count = self.request.query_params.get('count')
-            if (count):
+            next = self.request.query_params.get('next')
+            if count:
                 return Anekdot.objects.all().order_by('-rating')[:int(count)]
         return Anekdot.objects.all().order_by('-rating')
 
 
-class RandomAnekdotViewSet(viewsets.ModelViewSet):
+class NextAnekdotViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    serializer_class = AnekdotSerializer
     http_method_names = ['get']
 
-    def get_queryset(self, request):
-        #unrated = Anekdot.objects.filter()
+    def get_queryset(self):
+        user = User.objects.get(username=self.request.user)
+        anek_list = Anekdot.objects.exclude(rated_by=user)
+        if len(anek_list) == 0:
+            return Anekdot.objects.none()
+        return anek_list[:1]
 
-    pass
 
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -36,39 +42,35 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
     @swagger_auto_schema(request_body=AnekdotGenerationSerializer,
                          responses={201: AnekdotSerializer})
     def create(self, requst):
-        model = requst.data['model_name']
+        model_name = requst.data['model_name']
         t = requst.data['t']
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
-        anek = requests.get('http://127.0.0.1:8000/anekdot', params={
-            'model': model,
+        anek = requests.get('http://generator-api:8000/anekdot', params={
+            # 'model_name': model_name,
             't': t,
             'p': p,
             'k': k,
-            'r_p': r_p,
+            'repetition_penalty': r_p,
         })
-        texts = anek.json()['anekdot']
-        new_aneks = []
-        result = []
-        for text in texts:
-            tts_resp = requests.post(
-                'http://127.0.0.1:8001/tts/', json={'text': text})
-            tts_hash = tts_resp.json()['hash']
-            new_anek = Anekdot(
-                tts_hash=tts_hash,
-                text=text,
-                created_at=datetime.now(),
-                t=t,
-                p=p,
-                k=k,
-                rep_penalty=r_p
-            )
-            new_anek.save()
-            new_aneks.append(new_anek)
-            serializer = AnekdotSerializer(new_anek)
-            result.append(serializer.data)
-        return Response(data=result, status=201)
+        text = anek.json()['anekdot'][0]
+        tts_resp = requests.post(
+            'http://tts-proxy-api:8000/tts', json={'text': text})
+        print(tts_resp.text)
+        tts_hash = tts_resp.json()['hash']
+        new_anek = Anekdot(
+            tts_hash=tts_hash,
+            text=text,
+            created_at=datetime.now(),
+            t=t,
+            p=p,
+            k=k,
+            rep_penalty=r_p
+        )
+        new_anek.save()
+        serializer = AnekdotSerializer(new_anek)
+        return Response(serializer.data, status=201)
 
 
 class AnekdotRatingViewSet(viewsets.ViewSet):

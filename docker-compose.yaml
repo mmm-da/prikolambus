@@ -49,9 +49,9 @@ services:
     command: sh ./run.sh
     restart: always
     depends_on:
+      - database
       - tts-proxy-api
       - generator-api
-      - database
     ports: 
       - "8002:8002"
 
