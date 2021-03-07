@@ -8,8 +8,8 @@ app = FastAPI()
 logging.basicConfig(filename='generator.log', encoding='utf-8', level=logging.DEBUG)
 
 class ModelName(str,Enum):
-    funny1 = 'mmm-da/anekdot_funny1_rugpt3Small'
-    funny2 = 'mmm-da/anekdot_funny2_rugpt3Small'
+    'mmm-da/anekdot_funny1_rugpt3Small' = funny1
+    'mmm-da/anekdot_funny2_rugpt3Small' = funny2
 
 @app.get("/anekdot")
 async def get_anekdot(
