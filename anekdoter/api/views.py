@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from drf_yasg import openapi
 import requests
 from datetime import datetime
 from rest_framework.response import Response
@@ -25,13 +26,13 @@ class AnekdotViewSet(viewsets.ModelViewSet):
         return Anekdot.objects.all().order_by('-rating')
 
 
-class NextAnekdotViewSet(viewsets.ModelViewSet):
+class NextAnekdotViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = AnekdotSerializer
-    http_method_names = ['get']
 
-    def get_queryset(self):
-        user = User.objects.get(username=self.request.user)
+    @swagger_auto_schema(responses={201: AnekdotSerializer})
+    def list(self, request):
+        user = User.objects.get(username=request.user)
         anek_list = Anekdot.objects.exclude(rated_by=user)
         if len(anek_list) == 0:
             return Anekdot.objects.none()
@@ -78,7 +79,8 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
 class AnekdotRatingViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(request_body=AnekdotRatingSerializer, responses={201: ""})
+    @swagger_auto_schema(responses={201: ""},
+                         request_body=AnekdotRatingSerializer)
     def create(self, request):
         anek_id = request.data['id']
         rating = request.data['rating']
@@ -102,12 +104,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    @swagger_auto_schema(request_body=UserSerializer)
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter('invite', description='Инвайт-код',
+                          in_=openapi.IN_QUERY, type=openapi.TYPE_STRING, required=True)
+    ], responses={201: "Учетная запись создана", 400: "Инвайт-код не годится"})
     def create(self, request):
         invite = request.query_params.get('invite')
         if invite:
             try:
-                Invite.objects.get(code=invite)
+                i = Invite.objects.get(code=invite)
             except ObjectDoesNotExist:
                 return Response(status=400)
         serialized = UserSerializer(data=request.data)
@@ -116,13 +121,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 username=request.data['username'],
                 password=request.data['password']
             )
+            i.delete()
             return Response(serialized.data, status=201)
         else:
             return Response(serialized._errors, status=400)
 
 
 class InviteViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(request_body=UserSerializer)
+    @swagger_auto_schema(responses={201: InviteSerializer})
     def list(self, request):
         invite = Invite.objects.create(code=generate_invite(), is_given=True)
         invite.save()
