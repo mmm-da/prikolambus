@@ -46,6 +46,9 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PORT=${POSTGRES_PORT}
+      - DJANGO_SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+      - DJANGO_SUPERUSER_USERNAME=${SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
     command: sh ./run.sh
     restart: always
     depends_on:
@@ -63,3 +66,10 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
+
+  nginx:
+    build:
+      dockerfile: ./nginx/Dockerfile
+      context: ./
+    ports:
+      - "80:80"
