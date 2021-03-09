@@ -60,7 +60,7 @@ button{
     color: #fff;
 
     &:hover{
-      background-color: adjust-color($color:$accent-color-red, $lightness:10);
+      background-color: adjust-color($accent-color-red, $lightness:10%);
     }
   }
 
@@ -69,7 +69,7 @@ button{
     color: #fff;
 
     &:hover{
-      background-color: adjust-color($color:$accent-color-blue, $lightness:10);
+      background-color: adjust-color($accent-color-blue, $lightness:10%);
     }
   }
 
@@ -78,7 +78,7 @@ button{
   }
 
   &:hover{
-    background-color: adjust-color($color: $accent-color-yellow, $lightness:15);
+    background-color:  adjust-color($accent-color-yellow, $lightness: 15%);
   }
 }
 

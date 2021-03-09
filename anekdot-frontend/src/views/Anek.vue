@@ -21,6 +21,7 @@
 <script>
 import Anekdot from '@/components/Anekdot.vue'
 import AnekdotLoader from '@/components/AnekdotLoader.vue'
+
 export default {
 
   name: 'Anek',

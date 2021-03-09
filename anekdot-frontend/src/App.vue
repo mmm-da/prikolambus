@@ -4,8 +4,11 @@
       <nav id="nav">
         <router-link to="/anek">Случайный анекдот</router-link>
         <router-link to="/best">Лучшие анеки</router-link>
-        <router-link to="/login">
-            Войти
+        <a v-if="isAuth" v-on:click="logout()">
+            Выход
+        </a>
+        <router-link v-else to="/login">
+            Вход
         </router-link>
       </nav>
         <router-view/>
@@ -15,6 +18,37 @@
     </footer>
   </div>
 </template>
+
+<script>
+import auth from '@/jwtAuth'
+
+export default {
+  data () {
+    return {
+      isAuth: false
+    }
+  },
+
+  created () {
+    this.getIsAuth()
+  },
+
+  watch: {
+    $route: 'getIsAuth'
+  },
+
+  methods: {
+    getIsAuth () {
+      this.isAuth = auth.isAuth
+    },
+
+    logout () {
+      this.$router.go()
+      auth.logout()
+    }
+  }
+}
+</script>
 
 <style lang="scss">
 
@@ -41,6 +75,7 @@ nav {
   padding: 30px;
   text-align: center;
   a {
+    cursor: pointer;
     padding:16px;
     font-weight: bold;
     color: $text-color;
