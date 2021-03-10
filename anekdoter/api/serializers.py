@@ -39,9 +39,16 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'username',
-            'password'
+            'password',
         ]
 
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'is_superuser'
+        ]
 
 class InviteSerializer(serializers.ModelSerializer):
     class Meta:

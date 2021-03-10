@@ -1,5 +1,4 @@
 from django.conf.urls import url
-
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
@@ -15,9 +14,9 @@ router.register(r'anekdot', AnekdotViewSet, basename='anekdot')
 router.register(r'next', NextAnekdotViewSet, basename='next')
 router.register(r'rate', AnekdotRatingViewSet, basename='rate')
 router.register(r'generate', AnekdotGeneratorViewSet, basename='generate')
-router.register(r'register', UserViewSet, basename='register')
+router.register(r'register', RegisterViewSet, basename='register')
 router.register(r'invite', InviteViewSet, basename='invite')
-
+router.register(r'user', UserViewSet, basename='user')
 schema_view = get_schema_view(
     openapi.Info(
         title="API с приколом",

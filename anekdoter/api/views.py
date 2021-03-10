@@ -97,7 +97,7 @@ class AnekdotRatingViewSet(viewsets.ViewSet):
         return Response(status=201)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class RegisterViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     http_method_names = ['post']
     queryset = User.objects.all()
@@ -125,6 +125,11 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return Response(serialized._errors, status=400)
 
+class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
 
 class InviteViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={201: InviteSerializer})
@@ -133,3 +138,4 @@ class InviteViewSet(viewsets.ViewSet):
         invite.save()
         serialized = InviteSerializer(invite)
         return Response(serialized.data, status=201)
+
