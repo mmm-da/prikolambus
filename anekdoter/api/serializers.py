@@ -29,6 +29,10 @@ class AnekdotRatingSerializer(serializers.ModelSerializer):
             'rating'
         ]
 
+class AnekdotNextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Anekdot
+        fields = ['id']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

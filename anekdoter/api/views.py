@@ -20,24 +20,23 @@ class AnekdotViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             count = self.request.query_params.get('count')
-            next = self.request.query_params.get('next')
             if count:
                 return Anekdot.objects.all().order_by('-rating')[:int(count)]
         return Anekdot.objects.all().order_by('-rating')
 
 
-class NextAnekdotViewSet(viewsets.ViewSet):
+class NextAnekdotViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = AnekdotSerializer
+    serializer_class = AnekdotNextSerializer
 
-    @swagger_auto_schema(responses={201: AnekdotSerializer})
-    def list(self, request):
-        user = User.objects.get(username=request.user)
-        anek_list = Anekdot.objects.exclude(rated_by=user)
-        if len(anek_list) == 0:
-            return Anekdot.objects.none()
-        return anek_list[:1]
-
+    def get_queryset(self):
+        count = self.request.query_params.get('count')
+        if not count:
+            count = 1
+        user = User.objects.get(username=self.request.user)
+        q = Anekdot.objects.all()
+        return q.exclude(rated_by=user)[:count]
+ 
 
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
