@@ -18,9 +18,9 @@ class AnekdotViewSet(viewsets.ModelViewSet):
     serializer_class = AnekdotSerializer
 
     def get_permissions(self):
-        if self.action == 'list':
-            return IsAuthenticated
-        return IsAdminUser
+        if (self.action == 'list') or (self.action == 'retrieve'):
+            return [AllowAny]
+        return [IsAdminUser]
 
     def get_queryset(self):
         if self.action == 'list':
@@ -31,20 +31,13 @@ class AnekdotViewSet(viewsets.ModelViewSet):
 
 
 class NextAnekdotViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     http_method_names = ['get']
 
     @swagger_auto_schema(responses={201: AnekdotNextSerializer})
     def list(self, request):
-        try:
-            user = User.objects.get(username=self.request.user)
-        except ObjectDoesNotExist:
-            return Response(status=400)
-        q = Anekdot.objects.exclude(rated_by=user)
-        serialized = AnekdotNextSerializer(
-           random.choice(list(q)))
+        serialized = AnekdotNextSerializer(random.choice(list(Anekdot.objects.all())))
         return Response(serialized.data, status=200)
-
 
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
@@ -101,7 +94,7 @@ class AnekdotRatingViewSet(viewsets.ViewSet):
         anek_id = request.data['id']
         rating = request.data['rating']
         user = User.objects.get(username=request.user)
-        if (rating != 1 and rating != -1):
+        if (rating != 1) and (rating != -1):
             return Response(data={"error": "wrong rating"}, status=400)
         anek = Anekdot.objects.get(id=anek_id)
 
