@@ -1,8 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg import openapi
 import requests
+import random
 from datetime import datetime
-from rest_framework import response
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
@@ -36,9 +36,9 @@ class NextAnekdotViewSet(viewsets.ViewSet):
             user = User.objects.get(username=self.request.user)
         except ObjectDoesNotExist:
             return Response(status=400)
-        q = Anekdot.objects.all()
+        q = Anekdot.objects.exclude(rated_by=user)
         serialized = AnekdotNextSerializer(
-            q.exclude(rated_by=user).first())
+           random.choice(list(q)))
         return Response(serialized.data, status=200)
 
 
