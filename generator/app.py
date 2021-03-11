@@ -9,14 +9,9 @@ logging.basicConfig(filename='generator.log',
                     encoding='utf-8', level=logging.DEBUG)
 
 
-class ModelName(str, Enum):
-    funny1 = 'mmm-da/anekdot_funny1_rugpt3Small'
-    funny2 = 'mmm-da/anekdot_funny2_rugpt3Small'
-
-
 @app.get("/anekdot")
 async def get_anekdot(
-        model_name: ModelName = ModelName.funny1.value,
+        model_name: str = 'mmm-da/anekdot_funny1_rugpt3Small',
         length: int = 100,
         t: float = 0.9,
         k: int = 0,
