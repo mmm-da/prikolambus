@@ -3,7 +3,7 @@
     <h1>Лучшие анекдоты</h1>
     <AnekdotListItem
       v-for="(item) in anekList"
-      v-bind:text="item.text"
+      v-bind:text="item.text.slice(0,50)"
       v-bind:rating="item.rating"
       v-bind:num="item.id"
       v-bind:key="item.id"
@@ -13,21 +13,33 @@
 
 <script>
 import AnekdotListItem from '@/components/AnekdotListElement.vue'
+import { mapState } from 'vuex'
+import axios from 'axios'
+import constants from '@/constants.js'
 
 export default {
   name: 'BestAneks',
   components: {
     AnekdotListItem
   },
+
+  created: function () {
+    this.getAnekdotList()
+  },
+
+  computed: mapState('auth', ['accessToken']),
   data: () => {
     return {
-      anekList: [
-        { id: 192, text: 'Купил мужик шляпу, а она ему как раз.', rating: 100 },
-        { id: 95, text: 'Купил мужик шляпу, а она ему как раз.', rating: 80 },
-        { id: 19, text: 'Купил мужик шляпу, а она ему как раз.', rating: 73 },
-        { id: 24, text: 'Купил мужик шляпу, а она ему как раз.', rating: 14 },
-        { id: 6, text: 'Купил мужик шляпу, а она ему как раз.', rating: 4 }
-      ]
+      anekList: []
+    }
+  },
+  methods: {
+    getAnekdotList () {
+      axios.get(constants.apiBaseURL + '/anekdot/?count=' + 20).then(
+        response => {
+          this.anekList = response.data
+        }
+      )
     }
   }
 

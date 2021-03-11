@@ -2,11 +2,12 @@
   <div id="app">
     <main>
       <nav id="nav">
-        <router-link to="/anek">Случайный анекдот</router-link>
+        <a v-on:click="getNewId">Случайный анекдот</a>
         <router-link to="/best">Лучшие анеки</router-link>
-        <a v-if="isAuth" v-on:click="logout()">
-            Выход
-        </a>
+        <router-link v-if="isAdmin" to="/gen">Генератор</router-link>
+        <router-link v-if="isAuth" to="/profile">
+            <span class="admin-badge" v-if="isAdmin"># </span>{{username}}
+        </router-link>
         <router-link v-else to="/login">
             Вход
         </router-link>
@@ -20,31 +21,32 @@
 </template>
 
 <script>
-import auth from '@/jwtAuth'
+import { mapState } from 'vuex'
+import axios from 'axios'
+import constants from '@/constants.js'
 
 export default {
-  data () {
-    return {
-      isAuth: false
-    }
-  },
-
-  created () {
-    this.getIsAuth()
-  },
-
-  watch: {
-    $route: 'getIsAuth'
-  },
-
+  state: () => ({
+    isAuth: true,
+    prevAnek: NaN
+  }),
+  computed: mapState('auth', ['isAuth', 'isAdmin', 'username']),
   methods: {
-    getIsAuth () {
-      this.isAuth = auth.isAuth
-    },
-
-    logout () {
-      this.$router.go()
-      auth.logout()
+    getNewId () {
+      axios.get(constants.apiBaseURL + '/next/').then(
+        (response) => {
+          if (response.data.id === this.prevAnek) {
+            this.getNewId()
+          } else {
+            this.prevAnek = response.data.id
+            this.$router.push('/anek/' + response.data.id)
+          }
+        }
+      ).catch(
+        () => {
+          this.$router.push('/')
+        }
+      )
     }
   }
 }
@@ -70,8 +72,9 @@ footer {
 
 nav {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  align-content: center;
+  align-items: center;
   padding: 30px;
   text-align: center;
   a {
@@ -92,4 +95,7 @@ nav {
 
 }
 
+.admin-badge{
+  color: $accent-color-blue;
+}
 </style>

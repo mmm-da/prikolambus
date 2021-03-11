@@ -4,25 +4,11 @@ import axios from 'axios'
 class Auth {
   accessToken = localStorage.getItem('accessToken')
   refreshToken = localStorage.getItem('refreshToken')
-  isAuth = this.validateToken(this.refreshToken) || this.validateToken(this.accessToken)
 
   logout () {
     this.isAuth = false
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-  }
-
-  validateToken (token) {
-    try {
-      const payload = JSON.parse(
-        atob(
-          token.split()[1]
-        )
-      )
-      return (Date.now() > payload.exp * 1000)
-    } catch (error) {
-      return false
-    }
   }
 
   getAccessToken () {

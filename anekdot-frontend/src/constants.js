@@ -1,5 +1,6 @@
 const constants = {
-  apiBaseURL: 'http://localhost:8002/api'
+  apiBaseURL: 'http://minecraft.kalbas.com.vn:8002/api',
+  ttsBaseURL: 'http://minecraft.kalbas.com.vn:8001'
 }
 
 export default constants

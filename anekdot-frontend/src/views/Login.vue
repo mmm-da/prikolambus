@@ -25,9 +25,6 @@
 </template>
 
 <script>
-import auth from '@/jwtAuth'
-import axios from 'axios'
-import constants from '@/constants'
 export default {
 
   name: 'Login',
@@ -42,22 +39,8 @@ export default {
   },
   methods: {
     onClickLoginButton () {
-      console.log(this.login, this.password)
-      axios.post(constants.apiBaseURL + '/token/', { username: this.login, password: this.password })
-        .then((response) => {
-          auth.isAuth = true
-          localStorage.setItem('accessToken', response.data.access)
-          auth.accessToken = response.data.access
-          if (this.remember) {
-            localStorage.setItem('refreshToken', response.data.refresh)
-            auth.refreshToken = response.data.refresh
-          } else auth.refreshToken = null
-        }).catch(() => {
-          auth.isAuth = false
-          auth.refreshToken = null
-          auth.accessToken = null
-        })
-      this.$router.push('/best')
+      this.$store.dispatch('auth/login', { username: this.login, password: this.password })
+      this.$router.push('/')
     }
   }
 }

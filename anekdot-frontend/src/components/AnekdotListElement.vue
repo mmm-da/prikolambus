@@ -1,5 +1,5 @@
 <template>
-    <router-link class='list-element-link' to="/anek">
+    <router-link class='list-element-link' :to="{name: 'Anekdot', params: {id: this.num}}">
         <div class="anekdot-list-element content-block">
             <div class='id'>#{{num}}</div>
             <div class='text'>{{text}}</div>

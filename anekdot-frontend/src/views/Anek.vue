@@ -1,50 +1,128 @@
 <template>
   <div  class="anek">
     <Anekdot
-      v-bind:text='anekdotData.text'
-      v-bind:num='anekdotData.num'
-      v-bind:audio_link='anekdotData.audio_link'
-      v-bind:gen_model='anekdotData.gen_model'
-      v-bind:gen_k='anekdotData.gen_k'
-      v-bind:gen_t='anekdotData.gen_t'
-      v-bind:gen_p='anekdotData.gen_p'
-      v-bind:gen_rp='anekdotData.gen_rp'
+      v-bind:text='text'
+      v-bind:num='id'
+      v-bind:audio_link='audio_link'
+      v-bind:gen_model='gen_model'
+      v-bind:gen_k='gen_k'
+      v-bind:gen_t='gen_t'
+      v-bind:gen_p='gen_p'
+      v-bind:gen_rp='gen_rp'
+      v-bind:gen_seed='gen_seed'
       v-if="isDataReady"
     />
     <AnekdotLoader v-else/>
-      <button class="red">Дак не смешно же</button>
-      <button class="blue">Пойдет</button>
-      <button v-on:click="isDataReady = !isDataReady" >Следующий анек</button>
+      <div class="rank-span">
+        <button v-if="userID && isAbleVote" v-on:click="vote(-1)" class="red">Дак не смешно же</button>
+        <span class="rank">{{rank}}</span>
+        <button v-if="userID && isAbleVote" v-on:click="vote(1)" class="blue">Пойдет</button>
+      </div>
+      <button v-on:click="getNewId" >Следующий анек</button>
   </div>
 </template>
 
 <script>
 import Anekdot from '@/components/Anekdot.vue'
 import AnekdotLoader from '@/components/AnekdotLoader.vue'
+import axios from 'axios'
+import constants from '@/constants.js'
+import { mapState } from 'vuex'
 
 export default {
-
   name: 'Anek',
   components: {
     Anekdot,
     AnekdotLoader
   },
+
+  created: function () {
+    this.getAnekdot()
+  },
+
+  computed: mapState('auth', ['accessToken', 'userID']),
+
+  watch: {
+    '$route.params.id': 'getAnekdot'
+  },
   data: () => {
     return {
-      isDataReady: true,
-      anekdotData: {
-        text: 'Купил мужик шляпу, а она ему как раз.',
-        num: 10,
-        audio_link: 'https://storage.yandexcloud.net/tts-cloud-s3/f8284eaf808be39d5310869c34719013658a7f8d466769cdc33b9ad1e811cd80f5d726ad203c4df6cde975034ff1f203a9bed55039882a2df3957b8a4a199e91?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=I89EjR7hpjWoYGE7xm7A%2F20210301%2Fru-central1%2Fs3%2Faws4_request&X-Amz-Date=20210301T130751Z&X-Amz-Expires=172800&X-Amz-Signature=535326d532798373e4602f86118d4c7183fb0fc08825eeca6d4f5b5ad2bb37d5&X-Amz-SignedHeaders=host',
-        gen_model: 'funny1',
-        gen_k: 1,
-        gen_t: 0.5,
-        gen_p: 0.6,
-        gen_rp: 0.7
-      }
+      prevAnek: NaN,
+      isDataReady: false,
+      audio_link: '',
+      text: '',
+      id: 0,
+      gen_model: 'funny1',
+      gen_k: 1,
+      gen_t: 0.5,
+      gen_p: 0.6,
+      gen_rp: 0.7,
+      gen_seed: 0,
+      rank: 0,
+      isAbleVote: true
+    }
+  },
+  methods: {
+    getAnekdot () {
+      this.isDataReady = false
+      axios.get(constants.apiBaseURL + '/anekdot/' + this.$route.params.id).then(
+        (response) => {
+          this.id = response.data.id
+          this.text = response.data.text
+          this.gen_model = response.data.model_name
+          this.gen_k = response.data.k
+          this.gen_t = response.data.t
+          this.gen_p = response.data.p
+          this.gen_rp = response.data.rep_penalty
+          this.gen_seed = response.data.seed
+          this.rank = response.data.rating
+          this.isAbleVote = !response.data.rated_by.find(el => el === this.userID)
+          return response.data.tts_hash
+        }
+      ).then(
+        (hash) => {
+          axios.get(constants.ttsBaseURL + '/tts/' + hash).then(
+            (response) => {
+              this.audio_link = response.data.link
+              this.isDataReady = true
+            }
+          )
+        }
+      ).catch(
+        () => {
+          this.$router.push('/')
+        }
+      )
+    },
+    getNewId () {
+      axios.get(constants.apiBaseURL + '/next/').then(
+        (response) => {
+          if (response.data.id === this.prevAnek) {
+            this.getNewId()
+          } else {
+            this.prevAnek = response.data.id
+            this.$router.push('/anek/' + response.data.id)
+          }
+        }
+      ).catch(
+        () => {
+          this.$router.push('/')
+        }
+      )
+    },
+    vote (num) {
+      axios.post(constants.apiBaseURL + '/rate/', { id: this.id, rating: num }, { headers: { Authorization: `Bearer ${this.accessToken}` } }).then(
+        () => {
+          this.isAbleVote = false
+          this.rank += num
+        }
+      ).catch(
+        () => {
+          this.isAbleVote = false
+        }
+      )
     }
   }
-
 }
 </script>
 
@@ -52,4 +130,13 @@ export default {
 
 @use '@/style.scss' as *;
 
+.rank-span{
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.rank {
+  padding-left: 32px;
+  padding-right: 32px;
+}
 </style>

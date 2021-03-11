@@ -7,13 +7,15 @@
             <div class='text'>
                 {{text}}
             </div>
-            <div class='generator-settings'>
+            <div v-if="showSettings" v-on:click="toggleSettings" class='generator-settings'>
                 model: <span class="settings-value">{{gen_model}}</span> |
                 k = <span class="settings-value">{{gen_k}}</span> |
                 p = <span class="settings-value">{{gen_p}}</span> |
                 t = <span class="settings-value">{{gen_t}}</span> |
-                rp = <span class="settings-value">{{gen_rp}}</span>
+                rp = <span class="settings-value">{{gen_rp}}</span>|
+                seed = <span class="settings-value">{{gen_seed}}</span>
             </div>
+            <a v-else v-on:click="toggleSettings" class='generator-settings'> показать параметры генерации </a>
             <AudioPlayer class='sound' v-bind:file="audio_link"/>
         </div>
     </div>
@@ -31,10 +33,21 @@ export default {
     gen_k: Number,
     gen_p: Number,
     gen_t: Number,
-    gen_rp: Number
+    gen_rp: Number,
+    gen_seed: Number
   },
   components: {
     AudioPlayer
+  },
+  data: () => {
+    return {
+      showSettings: false
+    }
+  },
+  methods: {
+    toggleSettings () {
+      this.showSettings = !this.showSettings
+    }
   }
 }
 </script>

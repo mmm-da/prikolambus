@@ -1,30 +1,35 @@
 <template>
   <div class="reg">
+  <form v-on:submit.prevent="onClickRegButton">
     <div class='text-input'>
       <label>
-        <input placeholder=" ">
+        <input v-model="inviteToken" type="text" placeholder=" ">
         <span>Инвайт</span>
       </label>
     </div>
     <div class='text-input'>
       <label>
-        <input placeholder=" ">
+        <input v-model="login" id="username" autocomplete="username" type="text" placeholder=" ">
         <span>Логин</span>
       </label>
     </div>
     <div class='text-input'>
       <label>
-        <input placeholder=" ">
+        <input v-model="password" id=“current-password” autocomplete="current-password" type="password" placeholder=" ">
         <span>Пароль</span>
       </label>
     </div>
     <div>
       <button>Зарегистрироватся</button>
     </div>
+  </form>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+import constants from '@/constants.js'
+
 export default {
 
   name: 'Reg',
@@ -32,9 +37,25 @@ export default {
   },
   data: () => {
     return {
-      inviteToken: String,
-      login: String,
-      password: String
+      inviteToken: '',
+      login: '',
+      password: ''
+    }
+  },
+  methods: {
+    onClickRegButton () {
+      axios.post(
+        constants.apiBaseURL + '/register/?invite=' + this.inviteToken
+        , { username: this.login, password: this.password }).then(
+        () => {
+          this.$store.dispatch('auth/login', { username: this.login, password: this.password })
+          this.$router.push('/')
+        }
+      ).catch(
+        error => {
+          console.log(error)
+        }
+      )
     }
   }
 }
