@@ -17,6 +17,23 @@ temp = GPT2Tokenizer.from_pretrained('mmm-da/anekdot_funny2_rugpt3Small', cache_
 temp = GPT2LMHeadModel.from_pretrained('mmm-da/anekdot_funny2_rugpt3Small', cache_dir='/tmp')
 del temp
 
+def postprocess_anekdot(text:str):
+    ''' Что тут происходит:
+        (Сделано)
+        1. Текст обрезается по стоп токену
+        2. Добавляются отсутствующие переносы строк после -
+        3. Убираются повторяющиеся переносы строк
+        (TODO) 4. Текст обрезается по последнему знаку препинания.
+    '''
+    print(text)
+    result = text.replace('Анекдот. ','')
+    result = result.replace('Анекдот.','')
+    result = result.replace('—','\n—')
+    result = result.split('</s>')[0]
+    print(result)
+    return result
+
+
 def generate_anekdot(
     model_name_or_path:str,
     length:int = 100,
@@ -57,27 +74,15 @@ def generate_anekdot(
         num_return_sequences=count
     )
     for sequence in out:
-        result.append(tokenizer.decode(sequence))
+        result.append(
+            postprocess_anekdot(
+                str(
+                    tokenizer.decode(sequence)
+                )
+             )
+        )
 
     logger.info("Done")
     del tokenizer
     del model
     return result
-
-def postprocess_anekdot(text:str):
-    ''' Что тут происходит:
-        (Сделано)
-        1. Текст обрезается по стоп токену
-        2. Добавляются отсутствующие переносы строк после -
-        3. Убираются повторяющиеся переносы строк
-        (TODO) 4. Текст обрезается по последнему знаку препинания.
-    '''
-    # Обрезание текста по стоп токену
-    stop_token_crop = re.match(r'([^\r]*)<\/s>',text)
-    text = stop_token_crop.group(0) if stop_token_crop else text
-    # Добавление переносов
-    text = text.replace('-','\n-')
-    # Удаление повторных переносов
-    text = re.sub(r'\n{2,}','',text)
-    return str(text)
-

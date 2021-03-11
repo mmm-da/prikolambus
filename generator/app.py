@@ -34,6 +34,4 @@ async def get_anekdot(
         seed
     )
 
-    for i in generation_result:
-        i = anekdot.postprocess_anekdot(i)
     return {"anekdot": generation_result}
