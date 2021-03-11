@@ -52,33 +52,38 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
     @swagger_auto_schema(request_body=AnekdotGenerationSerializer,
                          responses={201: AnekdotSerializer})
     def create(self, requst):
+        count = requst.data['count']
         model_name = requst.data['model_name']
         t = requst.data['t']
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
-        anek = requests.get('http://generator-api:8000/anekdot', params={
-            # 'model_name': model_name,
-            't': t,
-            'p': p,
-            'k': k,
-            'repetition_penalty': r_p,
-        })
-        text = anek.json()['anekdot'][0]
-        tts_resp = requests.post(
-            'http://tts-proxy-api:8000/tts', json={'text': text})
-        tts_hash = tts_resp.json()['hash']
-        new_anek = Anekdot(
-            tts_hash=tts_hash,
-            text=text,
-            created_at=datetime.now(),
-            t=t,
-            p=p,
-            k=k,
-            rep_penalty=r_p
-        )
-        new_anek.save()
-        serialized = AnekdotSerializer(new_anek)
+        result = []
+        for _ in range (count):
+            anek = requests.get('http://generator-api:8000/anekdot', params={
+                # 'model_name': model_name,
+                't': t,
+                'p': p,
+                'k': k,
+                'repetition_penalty': r_p,
+            })
+            text = anek.json()['anekdot'][0]
+            tts_resp = requests.post(
+                'http://tts-proxy-api:8000/tts', json={'text': text})
+            tts_hash = tts_resp.json()['hash']
+            new_anek = Anekdot(
+                tts_hash=tts_hash,
+                text=text,
+                created_at=datetime.now(),
+                t=t,
+                p=p,
+                k=k,
+                rep_penalty=r_p
+            )
+            new_anek.save()
+            result.append(new_anek)
+        
+        serialized = AnekdotSerializer(result, many=True)
         return Response(serialized.data, status=201)
 
 
