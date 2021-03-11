@@ -19,8 +19,8 @@ class AnekdotViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if (self.action == 'list') or (self.action == 'retrieve'):
-            return AllowAny
-        return IsAdminUser
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def get_queryset(self):
         if self.action == 'list':
