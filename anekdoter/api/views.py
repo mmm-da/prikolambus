@@ -4,7 +4,7 @@ import requests
 import random
 from datetime import datetime
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 
@@ -15,8 +15,12 @@ from .invite import generate_invite
 
 
 class AnekdotViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = AnekdotSerializer
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return IsAuthenticated
+        return IsAdminUser
 
     def get_queryset(self):
         if self.action == 'list':
@@ -43,7 +47,7 @@ class NextAnekdotViewSet(viewsets.ViewSet):
 
 
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     @swagger_auto_schema(request_body=AnekdotGenerationSerializer,
                          responses={201: AnekdotSerializer})
@@ -140,6 +144,7 @@ class UserViewSet(viewsets.ViewSet):
 
 
 class InviteViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
     @swagger_auto_schema(responses={201: InviteSerializer})
     def list(self, request):
         invite = Invite.objects.create(code=generate_invite(), is_given=True)
