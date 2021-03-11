@@ -42,7 +42,7 @@ class NextAnekdotViewSet(viewsets.ViewSet):
             return Response(status=400)
         q = Anekdot.objects.exclude(rated_by=user)
         serialized = AnekdotNextSerializer(
-           random.choice(list(q)))
+            random.choice(list(q)))
         return Response(serialized.data, status=200)
 
 
@@ -50,16 +50,24 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
     @swagger_auto_schema(request_body=AnekdotGenerationSerializer,
+                         manual_parameters=[
+                             openapi.Parameter('count',
+                                               description='Сколько анекдотов сгенерировать',
+                                               in_=openapi.IN_QUERY,
+                                               type=openapi.TYPE_INTEGER,
+                                               required=False)],
                          responses={201: AnekdotSerializer})
     def create(self, requst):
-        count = requst.data['count']
+        count = int(requst.query_params.get('count'))
+        if not count:
+            count = 1
         model_name = requst.data['model_name']
         t = requst.data['t']
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
         result = []
-        for _ in range (count):
+        for _ in range(count):
             anek = requests.get('http://generator-api:8000/anekdot', params={
                 # 'model_name': model_name,
                 't': t,
@@ -82,7 +90,7 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
             )
             new_anek.save()
             result.append(new_anek)
-        
+
         serialized = AnekdotSerializer(result, many=True)
         return Response(serialized.data, status=201)
 
@@ -141,6 +149,7 @@ class RegisterViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ViewSet):
     http_method_names = ['get']
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(responses={200: UserDetailSerializer})
     def list(self, request):
         user = User.objects.get(username=request.user)
@@ -150,6 +159,7 @@ class UserViewSet(viewsets.ViewSet):
 
 class InviteViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(responses={201: InviteSerializer})
     def list(self, request):
         invite = Invite.objects.create(code=generate_invite(), is_given=True)
