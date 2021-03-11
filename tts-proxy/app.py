@@ -4,11 +4,22 @@ import logging
 import s3
 import tts
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 logging.basicConfig(filename="tts-proxy.log", encoding="utf-8", level=logging.INFO)
 logger = logging.getLogger("fast-api")
 
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class TtsRequest(BaseModel):
     text: str
@@ -24,11 +35,8 @@ async def generate_new_sound(body: TtsRequest):
     return {'link':s3.get_cloud_file_link(text_hash),
         'hash':text_hash}
 
-@app.get("/tts/{hash}")
+@app.get("/tts/{text_hash}")
 async def get_sound_url(text_hash: str):
-    link = s3.get_local_file_link(text_hash)
-    logger.info("Request audio from text with hash {}".format(text_hash))
-    
     link = s3.get_cloud_file_link(text_hash)
 
     if link:
