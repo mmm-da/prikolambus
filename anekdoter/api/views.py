@@ -18,8 +18,8 @@ class AnekdotViewSet(viewsets.ModelViewSet):
     serializer_class = AnekdotSerializer
 
     def get_permissions(self):
-        if self.action == 'list':
-            return IsAuthenticated
+        if (self.action == 'list') or (self.action == 'retrieve'):
+            return AllowAny
         return IsAdminUser
 
     def get_queryset(self):
@@ -31,7 +31,7 @@ class AnekdotViewSet(viewsets.ModelViewSet):
 
 
 class NextAnekdotViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     http_method_names = ['get']
 
     @swagger_auto_schema(responses={201: AnekdotNextSerializer})
@@ -39,10 +39,11 @@ class NextAnekdotViewSet(viewsets.ViewSet):
         try:
             user = User.objects.get(username=self.request.user)
         except ObjectDoesNotExist:
-            return Response(status=400)
+            serialized = AnekdotNextSerializer(
+                random.choice(list(Anekdot.objects.all())))
+            return Response(serialized.data, status=200)
         q = Anekdot.objects.exclude(rated_by=user)
-        serialized = AnekdotNextSerializer(
-            random.choice(list(q)))
+        serialized = AnekdotNextSerializer(random.choice(list(q)))
         return Response(serialized.data, status=200)
 
 
@@ -66,7 +67,7 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
-        seed = random.randint(1,10000000)
+        seed = random.randint(1, 10000000)
 
         aneks = requests.get('http://generator-api:8000/anekdot', params={
             'model_name': model_name,
@@ -98,6 +99,7 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
             new_anek.save()
         return Response(status=201)
 
+
 class AnekdotRatingViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -107,7 +109,7 @@ class AnekdotRatingViewSet(viewsets.ViewSet):
         anek_id = request.data['id']
         rating = request.data['rating']
         user = User.objects.get(username=request.user)
-        if (rating != 1 and rating != -1):
+        if (rating != 1) and (rating != -1):
             return Response(data={"error": "wrong rating"}, status=400)
         anek = Anekdot.objects.get(id=anek_id)
 
