@@ -10,7 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from models.models import *
 from .serializers import *
-
+from django.utils.timezone import make_aware
 from .invite import generate_invite
 
 
@@ -58,42 +58,45 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
                                                required=False)],
                          responses={201: AnekdotSerializer})
     def create(self, requst):
-        count = int(requst.query_params.get('count'))
-        if not count:
-            count = 1
+
+        count = self.request.query_params.get('count', None)
+        length = self.request.query_params.get('length', None)
         model_name = requst.data['model_name']
         t = requst.data['t']
         p = requst.data['p']
         k = requst.data['k']
         r_p = requst.data['rep_penalty']
-        result = []
-        for _ in range(count):
-            anek = requests.get('http://generator-api:8000/anekdot', params={
-                # 'model_name': model_name,
-                't': t,
-                'p': p,
-                'k': k,
-                'repetition_penalty': r_p,
-            })
-            text = anek.json()['anekdot'][0]
+        seed = random.randint(1,10000000)
+
+        aneks = requests.get('http://generator-api:8000/anekdot', params={
+            'model_name': model_name,
+            't': t,
+            'p': p,
+            'k': k,
+            'repetition_penalty': r_p,
+            'length': length,
+            'sequence_count': count,
+            'seed': seed
+        }).json()['anekdot']
+
+        for anek in aneks:
+            text = anek
             tts_resp = requests.post(
                 'http://tts-proxy-api:8000/tts', json={'text': text})
             tts_hash = tts_resp.json()['hash']
             new_anek = Anekdot(
+                model_name=model_name,
                 tts_hash=tts_hash,
                 text=text,
-                created_at=datetime.now(),
+                created_at=make_aware(datetime.now()),
                 t=t,
                 p=p,
                 k=k,
-                rep_penalty=r_p
+                rep_penalty=r_p,
+                seed=seed
             )
             new_anek.save()
-            result.append(new_anek)
-
-        serialized = AnekdotSerializer(result, many=True)
-        return Response(serialized.data, status=201)
-
+        return Response(status=201)
 
 class AnekdotRatingViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]

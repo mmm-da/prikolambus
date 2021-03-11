@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+from numpy.lib import index_tricks
 import anekdot
-from random import choice
+from random import choice,randint
 from enum import Enum
 import logging
 
@@ -17,7 +18,10 @@ async def get_anekdot(
         k: int = 0,
         p: float = 0.92,
         repetition_penalty: float = 1.0,
-        sequence_count: int = 1):
+        sequence_count: int = 1,
+        seed: int = None):
+
+    seed = seed or randint(1,10000000)
 
     generation_result = anekdot.generate_anekdot(
         model_name,
@@ -26,7 +30,8 @@ async def get_anekdot(
         k,
         p,
         repetition_penalty,
-        sequence_count
+        sequence_count,
+        seed
     )
 
     for i in generation_result:
