@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg import openapi
 import requests
 from datetime import datetime
+from rest_framework import response
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
@@ -25,18 +26,21 @@ class AnekdotViewSet(viewsets.ModelViewSet):
         return Anekdot.objects.all().order_by('-rating')
 
 
-class NextAnekdotViewSet(viewsets.ModelViewSet):
+class NextAnekdotViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = AnekdotNextSerializer
+    http_method_names = ['get']
 
-    def get_queryset(self):
-        count = self.request.query_params.get('count')
-        if not count:
-            count = 1
-        user = User.objects.get(username=self.request.user)
+    @swagger_auto_schema(responses={201: AnekdotNextSerializer})
+    def list(self, request):
+        try:
+            user = User.objects.get(username=self.request.user)
+        except ObjectDoesNotExist:
+            return Response(status=400)
         q = Anekdot.objects.all()
-        return q.exclude(rated_by=user)[:count]
- 
+        serialized = AnekdotNextSerializer(
+            q.exclude(rated_by=user).first())
+        return Response(serialized.data, status=200)
+
 
 class AnekdotGeneratorViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -59,7 +63,6 @@ class AnekdotGeneratorViewSet(viewsets.ViewSet):
         text = anek.json()['anekdot'][0]
         tts_resp = requests.post(
             'http://tts-proxy-api:8000/tts', json={'text': text})
-        print(tts_resp.text)
         tts_hash = tts_resp.json()['hash']
         new_anek = Anekdot(
             tts_hash=tts_hash,
@@ -125,11 +128,16 @@ class RegisterViewSet(viewsets.ModelViewSet):
         else:
             return Response(serialized._errors, status=400)
 
-class UserViewSet(viewsets.ModelViewSet):
+
+class UserViewSet(viewsets.ViewSet):
     http_method_names = ['get']
-    serializer_class = UserDetailSerializer
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+
+    def list(self, request):
+        user = User.objects.get(username=request.user)
+        serialized = UserDetailSerializer(user)
+        return Response(serialized.data)
+
 
 class InviteViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={201: InviteSerializer})
@@ -138,4 +146,3 @@ class InviteViewSet(viewsets.ViewSet):
         invite.save()
         serialized = InviteSerializer(invite)
         return Response(serialized.data, status=201)
-
