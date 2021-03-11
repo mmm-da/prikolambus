@@ -24,14 +24,18 @@ def generate_anekdot(
     k:int = 0,
     p:float = 0.92,
     repetition_penalty:float=1.0,
-    count:int = 1
+    count:int = 1,
+    seed:int = None
     ):
 
     logger.info("Generating anekdot")
 
     device = torch.device("cpu")
-    np.random.seed(random.randint(1,10000000))
-    torch.manual_seed(random.randint(1,10000000))
+    
+    seed = seed or random.randint(1,10000000)
+
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
     tokenizer = GPT2Tokenizer.from_pretrained(model_name_or_path, cache_dir='/tmp')
     model = GPT2LMHeadModel.from_pretrained(model_name_or_path, cache_dir='/tmp')

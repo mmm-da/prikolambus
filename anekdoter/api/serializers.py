@@ -17,7 +17,7 @@ class AnekdotGenerationSerializer(serializers.ModelSerializer):
             't',
             'p',
             'k',
-            'rep_penalty',
+            'rep_penalty'
         ]
 
 

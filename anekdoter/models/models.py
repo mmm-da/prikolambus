@@ -18,6 +18,8 @@ class Anekdot(models.Model):
     k = models.IntegerField(blank=True, default=0)
     p = models.FloatField(blank=True, default=0.92)
     rep_penalty = models.FloatField(blank=True, default=1)
+    seed = models.IntegerField(blank=True, default=0)
+    
     rated_by = models.ManyToManyField(User, blank=True)
 
 class Invite(models.Model):
