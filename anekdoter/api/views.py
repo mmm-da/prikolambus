@@ -132,7 +132,7 @@ class RegisterViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ViewSet):
     http_method_names = ['get']
     permission_classes = [IsAuthenticated]
-
+    @swagger_auto_schema(responses={200: UserDetailSerializer})
     def list(self, request):
         user = User.objects.get(username=request.user)
         serialized = UserDetailSerializer(user)
