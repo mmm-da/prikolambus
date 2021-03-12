@@ -6,8 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ['SECRET_KEY']
 DEBUG = int(environ.get("DEBUG", default=0))
 ALLOWED_HOSTS = environ["DJANGO_ALLOWED_HOSTS"].split(" ")
-CORS_ORIGIN_ALLOW_ALL=True
-
+CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

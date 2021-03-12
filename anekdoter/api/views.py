@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.timezone import make_aware
 from drf_yasg import openapi
 import requests
 import random
@@ -10,7 +11,6 @@ from drf_yasg.utils import swagger_auto_schema
 
 from models.models import *
 from .serializers import *
-from django.utils.timezone import make_aware
 from .invite import generate_invite
 
 
@@ -39,11 +39,17 @@ class NextAnekdotViewSet(viewsets.ViewSet):
         try:
             user = User.objects.get(username=self.request.user)
         except ObjectDoesNotExist:
-            serialized = AnekdotNextSerializer(
-                random.choice(list(Anekdot.objects.all())))
+            l = list(Anekdot.objects.all())
+            if len(l) == 0:
+                serialized = AnekdotNextSerializer(Anekdot.objects.none())
+            else:
+                serialized = AnekdotNextSerializer(random.choice(l))
             return Response(serialized.data, status=200)
-        q = Anekdot.objects.exclude(rated_by=user)
-        serialized = AnekdotNextSerializer(random.choice(list(q)))
+        l = list(Anekdot.objects.exclude(rated_by=user))
+        if len(l) == 0:
+            serialized = AnekdotNextSerializer(Anekdot.objects.none())
+        else:
+            serialized = AnekdotNextSerializer(random.choice(l))
         return Response(serialized.data, status=200)
 
 
