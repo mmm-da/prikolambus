@@ -1,6 +1,6 @@
 const constants = {
-  apiBaseURL: 'https://anekdot.neural.ro/api',
-  ttsBaseURL: 'https://anekdot.neural.ro'
+  apiBaseURL: 'http://anekdot.neural.ro/api',
+  ttsBaseURL: 'http://anekdot.neural.ro'
 }
 
 export default constants
