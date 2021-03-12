@@ -1,6 +1,6 @@
 const constants = {
-  apiBaseURL: 'http://minecraft.kalbas.com.vn:8002/api',
-  ttsBaseURL: 'http://minecraft.kalbas.com.vn:8001'
+  apiBaseURL: 'https://anekdot.neural.ro/api',
+  ttsBaseURL: 'https://anekdot.neural.ro'
 }
 
 export default constants

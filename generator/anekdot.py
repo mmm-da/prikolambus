@@ -25,12 +25,10 @@ def postprocess_anekdot(text:str):
         3. Убираются повторяющиеся переносы строк
         (TODO) 4. Текст обрезается по последнему знаку препинания.
     '''
-    print(text)
     result = text.replace('Анекдот. ','')
     result = result.replace('Анекдот.','')
     result = result.replace('—','\n—')
     result = result.split('</s>')[0]
-    print(result)
     return result
 
 

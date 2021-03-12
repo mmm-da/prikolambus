@@ -10,8 +10,6 @@ services:
     restart: always
     environment:
       - PYTHONUNBUFFERED=1
-    ports: 
-      - "8000:8000"
     volumes:
       - /generator-temp/:/tmp
 
@@ -30,8 +28,6 @@ services:
       - CLOUD_BUCKET_NAME=${CLOUD_BUCKET_NAME}
       - TTS_API_KEY_ID=${TTS_API_KEY_ID}
       - TTS_API_SECRET_KEY=${TTS_API_SECRET_KEY}
-    ports: 
-      - "8001:8000"
 
   anekdot-api:
     build:
@@ -55,8 +51,6 @@ services:
       - database
       - tts-proxy-api
       - generator-api
-    ports: 
-      - "8002:8000"
 
   database:
     image: postgres:13
@@ -64,8 +58,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - "5432:5432"
 
   nginx:
     build:
@@ -73,3 +65,23 @@ services:
       context: ./
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./certbot/data:/var/www/certbot
+    environment:
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - anekdot-api
+      - tts-proxy-api
+      - generator-api
+
+  certbot:
+    image: certbot/certbot:latest
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SUPERUSER_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}
+    volumes:
+        - ./certbot/conf:/etc/letsencrypt
+        - ./certbot/logs:/var/log/letsencrypt
+        - ./certbot/data:/var/www/certbot
+    depends_on:
+      - nginx
