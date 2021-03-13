@@ -77,6 +77,7 @@ export default {
           this.gen_seed = response.data.seed
           this.rank = response.data.rating
           this.isAbleVote = !response.data.rated_by.find(el => el === this.userID)
+          this.isDataReady = true
           return response.data.tts_hash
         }
       ).then(
@@ -84,7 +85,6 @@ export default {
           axios.get(constants.ttsBaseURL + '/tts/' + hash).then(
             (response) => {
               this.audio_link = response.data.link
-              this.isDataReady = true
             }
           )
         }
