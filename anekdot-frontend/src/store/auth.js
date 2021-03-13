@@ -26,6 +26,7 @@ const auth = {
   actions: {
     login: async ({ commit, state }, payload) => {
       const loginResponse = await axios.post(constants.apiBaseURL + '/token/', { username: payload.username, password: payload.password })
+      console.log(constants.apiBaseURL + '/token/')
       commit('setAccessToken', loginResponse.data.access)
       commit('setAuthState', true)
       const response = await axios.get(constants.apiBaseURL + '/user/', { headers: { Authorization: `Bearer ${state.accessToken}` } })
