@@ -1,6 +1,6 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "Несмешные анекдоты",
+    "short_name": "Анекдоты",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
