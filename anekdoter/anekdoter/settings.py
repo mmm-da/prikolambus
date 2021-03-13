@@ -138,6 +138,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/static/'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
-    "anekdot.neurals.ro"
-    "https://anekdot.neurals.ro"
+    "anekdot.neurals.ro",
+    "anekdot-api"
 ]

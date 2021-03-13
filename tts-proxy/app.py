@@ -11,7 +11,7 @@ logging.basicConfig(filename="tts-proxy.log", encoding="utf-8", level=logging.IN
 logger = logging.getLogger("fast-api")
 
 
-origins = ["anekdot.neurals.ro"]
+origins = ["anekdot.neurals.ro","tts-proxy-api"]
 
 app.add_middleware(
     CORSMiddleware,
