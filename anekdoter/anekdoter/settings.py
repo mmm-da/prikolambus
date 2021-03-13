@@ -138,5 +138,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/static/'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
-    environ["DJANGO_ALLOWED_HOSTS"]    
+    "anekdot.neurals.ro"
+    "https://anekdot.neurals.ro"
 ]
